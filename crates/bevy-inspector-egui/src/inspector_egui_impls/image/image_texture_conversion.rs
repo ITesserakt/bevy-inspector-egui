@@ -1,6 +1,6 @@
+use bevy_asset::RenderAssetUsages;
 use bevy_image::{Image, TextureFormatPixelInfo};
 use bevy_render::{
-    render_asset::RenderAssetUsages,
     render_resource::{Extent3d, TextureDimension, TextureFormat},
 };
 use bytemuck::cast_slice;
@@ -84,9 +84,10 @@ pub fn from_dynamic(dyn_img: DynamicImage, is_srgb: bool) -> Image {
             width = image.width();
             height = image.height();
             format = TextureFormat::Rgba16Uint;
+            let pixel_size = format.pixel_size().expect("Texture format size is not 1x1");
 
             let mut local_data =
-                Vec::with_capacity(width as usize * height as usize * format.pixel_size());
+                Vec::with_capacity(width as usize * height as usize * pixel_size);
 
             for pixel in image.into_raw().chunks_exact(3) {
                 let r = pixel[0];
@@ -115,9 +116,10 @@ pub fn from_dynamic(dyn_img: DynamicImage, is_srgb: bool) -> Image {
             width = image.width();
             height = image.height();
             format = TextureFormat::Rgba32Float;
+            let pixel_size = format.pixel_size().expect("Texture format size is not 1x1");
 
             let mut local_data =
-                Vec::with_capacity(width as usize * height as usize * format.pixel_size());
+                Vec::with_capacity(width as usize * height as usize * pixel_size);
 
             for pixel in image.into_raw().chunks_exact(3) {
                 let r = pixel[0];

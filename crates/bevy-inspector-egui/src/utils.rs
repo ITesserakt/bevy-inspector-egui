@@ -68,7 +68,7 @@ pub mod guess_entity_name {
             ("bevy_picking::pointer::PointerId", "Pointer"),
         ];
 
-        let type_names = archetype.components().filter_map(|id| {
+        let type_names = archetype.components().into_iter().filter_map(|&id| {
             let name = world.components().get_info(id)?.name();
             Some(name)
         });
@@ -76,7 +76,7 @@ pub mod guess_entity_name {
         for component_type in type_names {
             if let Some(name) = associations
                 .iter()
-                .find_map(|&(name, matches)| (component_type == name).then_some(matches))
+                .find_map(|&(name, matches)| (&*component_type == name).then_some(matches))
             {
                 return format!("{name} ({entity})");
             }

@@ -219,7 +219,7 @@ fn rescaled_image<'a>(
     let (texture, texture_id) = match scaled_down_textures.textures.entry(handle.clone()) {
         Entry::Occupied(handle) => {
             let handle: Handle<Image> = handle.get().clone();
-            (handle.clone(), egui_usere_textures.add_image(handle))
+            (handle.clone(), egui_usere_textures.add_image(&handle))
         }
         Entry::Vacant(entry) => {
             if scaled_down_textures.rescaled_textures.contains(handle) {
@@ -237,8 +237,10 @@ fn rescaled_image<'a>(
             let resized = image_texture_conversion::from_dynamic(resized, is_srgb);
 
             let resized_handle = textures.add(resized);
-            let weak = resized_handle.clone_weak();
-            let texture_id = egui_usere_textures.add_image(resized_handle.clone());
+            // Since we need a weak handle, maybe it would be better to store
+            // asset ids instead of handles?
+            let weak = resized_handle.clone();
+            let texture_id = egui_usere_textures.add_image(&resized_handle);
             entry.insert(resized_handle);
             scaled_down_textures.rescaled_textures.insert(weak.clone());
 

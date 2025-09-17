@@ -44,7 +44,7 @@ use crate::utils::{pretty_type_name, pretty_type_name_str};
 use bevy_asset::{Asset, AssetServer, Assets, ReflectAsset, UntypedAssetId};
 use bevy_ecs::query::{QueryFilter, WorldQuery};
 use bevy_ecs::world::CommandQueue;
-use bevy_ecs::{component::ComponentId, observer, prelude::*};
+use bevy_ecs::{component::ComponentId, prelude::*};
 use bevy_reflect::{Reflect, TypeRegistry};
 use bevy_state::state::{FreelyMutableState, NextState, State};
 use fuzzy_matcher::FuzzyMatcher;
@@ -497,7 +497,7 @@ fn self_or_children_satisfy_filter(
 
     let is_hidden_observer = !show_observers
         && world
-            .query::<&observer::ObserverState>()
+            .query::<&Observer>()
             .get(world, entity)
             .is_ok();
 
@@ -740,9 +740,10 @@ fn components_of_entity(
     let archetype = entity_ref.archetype();
     let mut components: Vec<_> = archetype
         .components()
-        .map(|component_id| {
+        .into_iter()
+        .map(|&component_id| {
             let info = world.world().components().get_info(component_id).unwrap();
-            let name = pretty_type_name_str(info.name());
+            let name = pretty_type_name_str(&*info.name());
 
             (name, component_id, info.type_id(), info.layout().size())
         })
@@ -850,7 +851,7 @@ pub fn ui_for_entities_shared_components(
 pub mod by_type_id {
     use std::any::TypeId;
 
-    use bevy_asset::{AssetServer, ReflectAsset, ReflectHandle, UntypedAssetId, UntypedHandle};
+    use bevy_asset::{AssetServer, ReflectAsset, ReflectHandle, UntypedAssetId};
     use bevy_ecs::{prelude::*, world::CommandQueue};
     use bevy_reflect::TypeRegistry;
 
@@ -948,15 +949,17 @@ pub mod by_type_id {
 
         for handle_id in ids {
             let id = egui::Id::new(handle_id);
-            let mut handle = reflect_handle
-                .typed(UntypedHandle::Weak(handle_id))
-                .into_partial_reflect();
+            // FIXME: a way to convert asset id into handle
+            //        Or pass asset id itself somehow
+            // let mut handle = reflect_handle
+            //     .typed(handle_id.)
+            //     .into_partial_reflect();
 
             egui::CollapsingHeader::new(handle_name(handle_id, asset_server.as_ref()))
                 .id_salt(id)
                 .show(ui, |ui| {
                     let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
-                    env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
+                    // env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
                 });
         }
 
@@ -1009,16 +1012,19 @@ pub mod by_type_id {
         };
 
         let id = egui::Id::new(handle);
-        let mut handle = reflect_handle
-            .typed(UntypedHandle::Weak(handle))
-            .into_partial_reflect();
+        // FIXME: a way to convert asset id into handle
+        //        Or pass asset id itself somehow
+        // let mut handle = reflect_handle
+        //     .typed(UntypedHandle::Weak(handle))
+        //     .into_partial_reflect();
 
         let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
-        let changed = env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
+        // let changed = env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
 
         queue.apply(world);
 
-        changed
+        // 
+        false
     }
 }
 
@@ -1114,7 +1120,7 @@ pub mod short_circuit {
                 );
                 let asset_value =
                 // SAFETY: the world allows mutable access to `Assets<T>`
-                unsafe { reflect_asset.get_unchecked_mut(world.world(), handle) };
+                unsafe { reflect_asset.get_unchecked_mut(world.world(), &handle) };
                 match asset_value {
                     Some(value) => value,
                     None => {
@@ -1210,7 +1216,7 @@ pub mod short_circuit {
                     );
                     let asset_value =
                         // SAFETY: the world allows mutable access to `Assets<T>`
-                        unsafe { reflect_asset.get_unchecked_mut(world.world(), handle) };
+                        unsafe { reflect_asset.get_unchecked_mut(world.world(), &handle) };
                     match asset_value {
                         Some(value) => value,
                         None => {
@@ -1294,7 +1300,7 @@ pub mod short_circuit {
                 assert!(
                     assets_view.allows_access_to_resource(reflect_asset.assets_resource_type_id())
                 );
-                let asset_value = reflect_asset.get(interior_mutable_world, handle);
+                let asset_value = reflect_asset.get(interior_mutable_world, &handle);
                 match asset_value {
                     Some(value) => value,
                     None => {

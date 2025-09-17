@@ -321,8 +321,8 @@ pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
 
     #[cfg(feature = "bevy_render")] 
     {
-      add_of_with_many::<bevy_asset::Handle<bevy_render::mesh::Mesh>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::mesh::Mesh>>);
-      add::<bevy_render::view::RenderLayers>(type_registry);
+      add_of_with_many::<bevy_asset::Handle<bevy_mesh::Mesh>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_mesh::Mesh>>);
+      add::<bevy_camera::visibility::RenderLayers>(type_registry);
     }
     #[cfg(feature = "bevy_image")]
     {
